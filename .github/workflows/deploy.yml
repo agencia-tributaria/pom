@@ -9,6 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - run: mvn --batch-mode help:effective-pom
       - run: mvn --batch-mode help:effective-settings
       - uses: actions/checkout@v2
       - env:
