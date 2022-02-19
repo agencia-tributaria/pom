@@ -11,23 +11,22 @@ jobs:
       packages: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - name: Obteniendo el contenido del repositorio GIT
+        uses: actions/checkout@v2
+      - name: Restaurando al contenido cacheado (si procede) de anteriores ejecuciones
+        uses: actions/cache@v2
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - env:
-          GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
-          GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
+      - name: Obteniendo el token que da acceso público al repositorio del POM padre
+        id: softalks
         run: |
-          mvn help:effective-settings -Drepo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2) -Downer=${GITHUB_REPOSITORY_OWNER}
-      - id: softalks
-        run: |
-          wget http://softalks.github.io/public.PAT
-          echo "::set-output name=PUBLIC_PAT::$(cat public.PAT)"
-      - uses: s4u/maven-settings-action@v2.5.0
+          wget http://softalks.github.io/public.token
+          echo "::set-output name=TOKEN::$(cat public.token)"
+      - name: Asignando las contraseñas (tokens) a los repositorios correspondientes en el fichero settings.xml
+        uses: s4u/maven-settings-action@v2.5.0
         with:
           servers: |
             [{
@@ -36,16 +35,12 @@ jobs:
               "password": "${{ secrets.GITHUB_TOKEN }}"
             }, {
               "id": "softalks",
-              "username": "${{ steps.softalks.outputs.PUBLIC_PAT }}",
-              "password": "${{ steps.softalks.outputs.PUBLIC_PAT }}"
+              "username": "${{ steps.softalks.outputs.TOKEN }}",
+              "password": "${{ steps.softalks.outputs.TOKEN }}"
             }]
-      - env:
-          GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
-          GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
+      - name: Creando el componente y desplegándolo en el repositorio Maven
+        env:
+          REPO: ${{ env.GITHUB_REPOSITORY }}
+          OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
         run: |
-          mvn help:effective-settings -Drepo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2) -Downer=${GITHUB_REPOSITORY_OWNER}
-      - env:
-          GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
-          GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
-        run: |
-          mvn deploy -Drepo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2) -Downer=${GITHUB_REPOSITORY_OWNER}
+          mvn deploy -Drepo=$(echo $REPO | cut -d'/' -f 2) -Downer=${OWNER}
