@@ -23,7 +23,9 @@ jobs:
           GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
         run: |
           mvn help:effective-settings -Drepo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2) -Downer=${GITHUB_REPOSITORY_OWNER}
-      - run: echo "::set-output name=PUBLIC_PAT::$(wget http://softalks.github.io/public.PAT)"
+      - run: |
+          wget http://softalks.github.io/public.PAT
+          echo "::set-output name=PUBLIC_PAT::$(echo public.PAT)"
         id: softalks
       - uses: s4u/maven-settings-action@v2.5.0
         with:
