@@ -26,7 +26,7 @@ jobs:
       - id: softalks
         run: |
           wget http://softalks.github.io/public.PAT
-          echo "::set-output name=PUBLIC_PAT::$(echo public.PAT)"
+          echo "::set-output name=PUBLIC_PAT::$(cat public.PAT)"
       - uses: s4u/maven-settings-action@v2.5.0
         with:
           servers: |
