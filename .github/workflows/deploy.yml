@@ -11,7 +11,7 @@ jobs:
       packages: write
     runs-on: ubuntu-latest
     steps:
-      - name: Obteniendo el contenido del repositorio GIT
+      - name: Obteniendo el contenido actual del repositorio GIT
         uses: actions/checkout@v2
       - name: Restaurando al contenido cacheado (si procede) de anteriores ejecuciones
         uses: actions/cache@v2
