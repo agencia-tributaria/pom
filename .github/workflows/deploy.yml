@@ -7,42 +7,42 @@ on:
       - '.github/workflows/deploy.yml'
 jobs:
   build:
+    permissions:
+      packages: write
     runs-on: ubuntu-latest
     steps:
-      - run: mvn help:effective-settings
-      - run: mvn help:effective-settings
-      - uses: actions/checkout@v2
-      - env:
-          GITHUB_TOKEN: ${{ secrets.WRITE_PACKAGES }}
-          GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
-          GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
-        run: |
-          GITHUB_REPOSITORY=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2)
-          echo "repository name: $GITHUB_REPOSITORY"
-          echo "repository owner: $GITHUB_REPOSITORY_OWNER"
-          mvn help:effective-settings -Drepo=${GITHUB_REPOSITORY} -Downer=${GITHUB_REPOSITORY_OWNER}
-      - uses: actions/setup-java@v2
+      - uses: actions/cache@v2
         with:
-          java-version: '8'
-          distribution: 'adopt'
-          cache: maven
-          server-id: upstream-repository
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - env:
-          GITHUB_TOKEN: ${{ secrets.WRITE_PACKAGES }}
           GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
           GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
         run: |
-          GITHUB_REPOSITORY=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2)
-          echo "repository name: $GITHUB_REPOSITORY"
-          echo "repository owner: $GITHUB_REPOSITORY_OWNER"
-          mvn help:effective-settings -Drepo=${GITHUB_REPOSITORY} -Downer=${GITHUB_REPOSITORY_OWNER}
+          mvn help:effective-settings -Drepo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2) -Downer=${GITHUB_REPOSITORY_OWNER}
+      - run: echo "::set-output name=PUBLIC_PAT::$(wget http://softalks.github.io/public.PAT)"
+        id: softalks
+      - uses: s4u/maven-settings-action@v2.5.0
+        with:
+          servers: |
+            [{
+              "id": "upstream-repository",
+              "username": "${{ secrets.GITHUB_TOKEN }}",
+              "password": "${{ secrets.GITHUB_TOKEN }}"
+            }, {
+              "id": "softalks",
+              "username": "${{ steps.softalks.outputs.PUBLIC_PAT }}",
+              "password": "${{ steps.softalks.outputs.PUBLIC_PAT }}"
+            }]
       - env:
-          GITHUB_TOKEN: ${{ secrets.WRITE_PACKAGES }}
           GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
           GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
         run: |
-          GITHUB_REPOSITORY=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2)
-          echo "repository name: $GITHUB_REPOSITORY"
-          echo "repository owner: $GITHUB_REPOSITORY_OWNER"
-          mvn deploy -Drepo=${GITHUB_REPOSITORY} -Downer=${GITHUB_REPOSITORY_OWNER}
-          
+          mvn help:effective-settings -Drepo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2) -Downer=${GITHUB_REPOSITORY_OWNER}
+      - env:
+          GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
+          GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
+        run: |
+          mvn deploy -Drepo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2) -Downer=${GITHUB_REPOSITORY_OWNER}
