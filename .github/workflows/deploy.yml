@@ -1,0 +1,26 @@
+on:
+  push:
+    paths:
+      - 'pom.xml'
+      - '.github/workflows/deploy.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+          cache: maven
+          server-id: upstream-repository
+      - env:
+          GITHUB_TOKEN: ${{ secrets.WRITE_PACKAGES }}
+          GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
+          GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
+        run: |
+          GITHUB_REPOSITORY=$(echo $GITHUB_REPOSITORY | cut -d'/' -f 2)
+          echo "repository name: $GITHUB_REPOSITORY"
+          echo "repository owner: $GITHUB_REPOSITORY_OWNER"
+          mvn -X --batch-mode --update-snapshots deploy -Drepo=${GITHUB_REPOSITORY} -Downer=${GITHUB_REPOSITORY_OWNER}
+          
