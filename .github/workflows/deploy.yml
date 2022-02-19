@@ -15,7 +15,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.WRITE_PACKAGES }}
           GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY_OWNER }}
           GITHUB_REPOSITORY_OWNER: ${{ env.GITHUB_REPOSITORY_OWNER }}
-      - run: mvn --batch-mode help:effective-settings
+        run: mvn --batch-mode help:effective-settings
       - uses: actions/setup-java@v2
         with:
           java-version: '8'
